@@ -25,8 +25,8 @@ function PreJoinLayout() {
     saveUsername,
   } = usePersistentUserChoices({});
 
-  const [audioEnabled, setAudioEnabled] = useState<boolean>(false);
-  const [videoEnabled, setVideoEnabled] = useState<boolean>(false);
+  const [audioEnabled, setAudioEnabled] = useState<boolean>(true);
+  const [videoEnabled, setVideoEnabled] = useState<boolean>(true);
   const [audioDeviceId, setAudioDeviceId] = useState<string>("");
   const [videoDeviceId, setVideoDeviceId] = useState<string>("");
   const [audioOutputDeviceId, setAudioOutputDeviceId] = useState<string>("");
@@ -74,9 +74,28 @@ function PreJoinLayout() {
     saveUsername(username);
   }, [username, saveUsername, isClient]);
 
+
+
+  const handleError = useCallback((error: Error) => {
+    console.error("Error creating tracks:", error);
+    setShowPermissionModal(true);
+  }, []);
+
+  const tracks = usePreviewTracks(
+    {
+      audio: audioEnabled
+        ? { deviceId: initialUserChoices.audioDeviceId }
+        : false,
+      video: videoEnabled
+        ? { deviceId: initialUserChoices.videoDeviceId }
+        : false,
+    },
+    handleError
+  );
+
   useEffect(() => {
     if (!isClient) return;
-    
+
     const getDevices = async () => {
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
@@ -94,20 +113,7 @@ function PreJoinLayout() {
       }
     };
     getDevices();
-  }, [isClient]);
-
-  const handleError = useCallback((error: Error) => {
-    console.error("Error creating tracks:", error);
-    setShowPermissionModal(true);
-  }, []);
-
-  const tracks = usePreviewTracks(
-    {
-      audio: audioEnabled,
-      video: videoEnabled,
-    },
-    handleError
-  );
+  }, [isClient, videoEnabled, audioEnabled,tracks]);
 
   const videoEl = useRef<HTMLVideoElement>(null);
 
@@ -132,20 +138,26 @@ function PreJoinLayout() {
   }, [videoTrack, isClient]);
 
   const handleJoinStudio = () => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       window.location.href = "/";
     }
   };
-  
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'var(--background)' }}>
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{ background: "var(--background)" }}
+    >
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
         <div className="space-y-6">
           <div className="space-y-2">
             <p className="text-muted text-sm">
               You&apos;re about to join Tushar Banga&apos;s Studio
             </p>
-            <h1 className="text-3xl font-bold" style={{ color: 'var(--foreground)' }}>
+            <h1
+              className="text-3xl font-bold"
+              style={{ color: "var(--foreground)" }}
+            >
               Let&apos;s check your cam and mic
             </h1>
           </div>
@@ -167,7 +179,10 @@ function PreJoinLayout() {
         </div>
 
         <div className="space-y-6">
-          <div className="aspect-video surface rounded-xl overflow-hidden border relative" style={{ borderColor: 'var(--card-border)' }}>
+          <div
+            className="aspect-video surface rounded-xl overflow-hidden border relative"
+            style={{ borderColor: "var(--card-border)" }}
+          >
             {videoEnabled ? (
               <video
                 ref={videoEl}
@@ -178,7 +193,10 @@ function PreJoinLayout() {
               />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center space-y-4">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--card)' }}>
+                <div
+                  className="w-16 h-16 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: "var(--card)" }}
+                >
                   <VideoOff className="w-8 h-8 text-muted" />
                 </div>
               </div>
@@ -268,14 +286,26 @@ function PreJoinLayout() {
         </div>
       </div>
       {showPermissionModal && (
-        <div className="fixed inset-0 flex items-center justify-center p-4 z-50" style={{ backgroundColor: 'var(--overlay-background)' }}>
+        <div
+          className="fixed inset-0 flex items-center justify-center p-4 z-50"
+          style={{ backgroundColor: "var(--overlay-background)" }}
+        >
           <div className="modal p-6 max-w-md w-full">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--danger)20' }}>
-                  <AlertTriangle className="w-5 h-5" style={{ color: 'var(--danger)' }} />
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: "var(--danger)20" }}
+                >
+                  <AlertTriangle
+                    className="w-5 h-5"
+                    style={{ color: "var(--danger)" }}
+                  />
                 </div>
-                <h3 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
+                <h3
+                  className="text-lg font-semibold"
+                  style={{ color: "var(--foreground)" }}
+                >
                   Permission Required
                 </h3>
               </div>
@@ -289,15 +319,20 @@ function PreJoinLayout() {
 
             <div className="space-y-4">
               <div className="card">
-                <h4 className="font-medium mb-2" style={{ color: 'var(--foreground)' }}>
+                <h4
+                  className="font-medium mb-2"
+                  style={{ color: "var(--foreground)" }}
+                >
                   How to enable permissions:
                 </h4>
                 <ul className="text-sm text-secondary space-y-1">
                   <li>
-                    • Click the camera/microphone icon in your browser&apos;s address
-                    bar
+                    • Click the camera/microphone icon in your browser&apos;s
+                    address bar
                   </li>
-                  <li>• Select &quot;Allow&quot; for both camera and microphone</li>
+                  <li>
+                    • Select &quot;Allow&quot; for both camera and microphone
+                  </li>
                   <li>• Refresh the page if needed</li>
                 </ul>
               </div>
