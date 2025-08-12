@@ -4,11 +4,13 @@ import {
     Mic,
     MicOff,
     MoreVertical,
-    Pin,
     VideoOff,
     Volume2,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+
+// Optional: Import LiveKit components for enhanced video handling
+// import { VideoTrack, AudioTrack, ParticipantTile } from "@livekit/components-react";
 
 // Utility functions
 function cn(...inputs: (string | undefined | null | boolean)[]): string {
@@ -47,7 +49,6 @@ interface Participant {
   isMuted?: boolean;
   isVideoOff?: boolean;
   isSpeaking?: boolean;
-  isPinned?: boolean;
   isHandRaised?: boolean;
   connectionQuality?: "excellent" | "good" | "poor";
 }
@@ -55,7 +56,6 @@ interface Participant {
 interface VideoGridProps {
   participants: Participant[];
   localParticipant: Participant;
-  onPinParticipant?: (participantId: string) => void;
 }
 
 interface GridDimensions {
@@ -308,43 +308,27 @@ const VideoTile = ({
   participant,
   position,
   isLocalUser = false,
-  onPin,
   style,
 }: {
   participant: Participant;
   position: GridPosition;
   isLocalUser?: boolean;
-  onPin?: (id: string) => void;
   style?: React.CSSProperties;
 }) => {
   const avatarColor = generateAvatarColor(participant.name);
   const initials = getInitials(participant.name);
 
   const getConnectionIndicator = () => {
-    // Bar heights for different qualities
-    let bars;
-    switch (participant.connectionQuality) {
-      case "excellent":
-        bars = ["h-1 bg-green-500", "h-2 bg-green-500", "h-3 bg-green-500"];
-        break;
-      case "good":
-        bars = ["h-1 bg-yellow-500", "h-2 bg-yellow-500", "h-3 bg-yellow-500"];
-        break;
-      default:
-        bars = [
-          "h-1 bg-red-500 animate-pulse",
-          "h-2 bg-red-500 animate-pulse",
-          "h-3 bg-red-500 animate-pulse",
-        ];
-        break;
-    }
-  return (
-      <div className="flex items-end space-x-[2px] w-5 h-4">
-        {bars.map((barClass, i) => (
+    const quality = participant.connectionQuality || "poor";
+    const heights = ["4px", "8px", "12px"];
+    
+    return (
+      <div className="video-tile-connection">
+        {heights.map((height, i) => (
           <div
             key={i}
-            className={`w-[3px] rounded ${barClass} transition-all duration-300`}
-            style={{ minHeight: "2px" }}
+            className={`connection-bar ${quality}`}
+            style={{ height }}
           />
         ))}
       </div>
@@ -359,31 +343,22 @@ const VideoTile = ({
         top: position.top,
         width: position.width,
         height: position.height,
-        transition: "all 0.3s ease-out",
         ...style,
       }}
       className={cn(
-        "relative bg-zinc-800 rounded-xl overflow-hidden shadow-lg transition-all duration-300",
-        participant.isSpeaking && "ring-2 ring-green-500",
-        participant.isPinned && "ring-2 ring-blue-500",
-        "group cursor-pointer"
+        "video-tile",
+        participant.isSpeaking && "speaking"
       )}
     >
       <div className="absolute top-3 left-3 z-10">
         {getConnectionIndicator()}
       </div>
-      {participant.isPinned && (
-        <div className="absolute top-3 right-3 z-10">
-          <Pin className="w-4 h-4 text-blue-400" fill="currentColor" />
-        </div>
-      )}
       <div className="w-full h-full flex items-center justify-center relative">
         {participant.isVideoOff ? (
           <div className="flex flex-col items-center justify-center space-y-2">
             <div
               className={cn(
-                "rounded-full flex items-center justify-center",
-                "text-white font-semibold",
+                "video-tile-avatar",
                 position.width > 200
                   ? "w-16 h-16 text-xl"
                   : "w-12 h-12 text-sm",
@@ -392,49 +367,33 @@ const VideoTile = ({
             >
               {initials}
             </div>
-            <VideoOff className="w-4 h-4 text-gray-400" />
+            <VideoOff className="w-4 h-4 text-muted" />
           </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <div className="text-4xl">📹</div>
             {participant.isSpeaking && (
-              <div className="absolute inset-0 bg-green-500/10 animate-pulse" />
+              <div className="absolute inset-0 animate-pulse" style={{ backgroundColor: "var(--success)20" }} />
             )}
           </div>
         )}
       </div>
-      <div className="absolute inset-0 bg-black/30">
+      <div className="video-tile-overlay">
         <div className="absolute top-2 right-2 flex space-x-1">
-          {!isLocalUser && onPin && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onPin(participant.id);
-              }}
-              className="p-1.5 bg-black/50 hover:bg-black/70 rounded-lg transition-colors"
-            >
-              <Pin className="w-3 h-3" />
-            </button>
-          )}
-          <button className="p-1.5 bg-black/50 hover:bg-black/70 rounded-lg transition-colors">
+          <button className="video-tile-button">
             <MoreVertical className="w-3 h-3" />
           </button>
         </div>
         <div className="absolute bottom-2 left-2 right-2">
           <div className="flex items-center justify-between">
-            <div className="bg-black/70 px-2 py-1 rounded text-xs text-white truncate-text">
+            <div className="video-tile-name truncate-text">
               {participant.name}
               {participant.isHost && " (Host)"}
               {isLocalUser && " (You)"}
             </div>
 
             <div className="flex items-center space-x-1">
-              <div
-                className={cn(
-                  "p-1 rounded-xl",
-                  participant.isMuted ? "bg-red-500" : "bg-green-500"
-                )}
-              >
+              <div className={cn("video-tile-mic", participant.isMuted ? "muted" : "unmuted")}>
                 {participant.isMuted ? (
                   <MicOff className="w-2.5 h-2.5 text-white" />
                 ) : (
@@ -443,8 +402,8 @@ const VideoTile = ({
               </div>
 
               {!isLocalUser && (
-                <button className="p-1 bg-black/70 hover:bg-black/90 rounded transition-colors">
-                  <Volume2 className="w-2.5 h-2.5 text-white" />
+                <button className="video-tile-button p-1">
+                  <Volume2 className="w-2.5 h-2.5" />
                 </button>
               )}
             </div>
@@ -458,7 +417,6 @@ const VideoTile = ({
 export const VideoGrid = ({
   participants,
   localParticipant,
-  onPinParticipant,
 }: VideoGridProps) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState<GridDimensions>({
@@ -493,7 +451,6 @@ export const VideoGrid = ({
             positions[index] || { left: 0, top: 0, width: 200, height: 112 }
           }
           isLocalUser={participant.id === localParticipant.id}
-          onPin={onPinParticipant}
           style={{
             animationDelay: `${index * 100}ms`,
           }}
