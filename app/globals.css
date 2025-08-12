@@ -1,8 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --button-hover: #ffffff20;
+
+  
+  --button-semi-primary: #ffffff30;
+  --button-hover-semi-primary: #ffffff25;
+  --button-semi-primary-danger: #ff000030;
+  --button-hover-semi-primary-danger: #ff000025;  
+  --button-semi-primary-danger-text: #ff6666;
 }
 
 @theme inline {
@@ -12,15 +20,55 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    
   }
-}
+} */
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+
+  .truncate-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100px;
+  }
+  @media (min-width: 768px) {
+    .truncate-text {
+      max-width: 200px;
+    }
+  }
+
+  button {
+    @apply p-2 rounded-xl;
+
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--button-hover);
+    }
+
+    &:active {
+      background-color: var(--button-hover);
+    }
+
+    &.semi-primary {
+      background-color: var(--button-semi-primary);
+      &:hover {
+        background-color: var(--button-hover-semi-primary);
+      }
+    }
+
+    &.semi-primary-danger {
+      background-color: var(--button-semi-primary-danger);
+      color: var(--button-semi-primary-danger-text);
+      &:hover {
+        background-color: var(--button-hover-semi-primary-danger);
+      }
+    }
+  }
 }
