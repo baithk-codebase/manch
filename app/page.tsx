@@ -1,5 +1,5 @@
 import { VideoGrid } from "@/components/VideoGrid";
-import { CameraIcon, ChevronLeft, Ellipsis, HandIcon, LeafIcon, LogOut, Menu, Mic, MicOff, ScreenShareIcon, Settings, Share, SpeakerIcon, VideoIcon } from "lucide-react";
+import { ChevronLeft, Ellipsis, HandIcon, LogOut, Mic, ScreenShareIcon, Settings, Share, SpeakerIcon, VideoIcon } from "lucide-react";
 
 const BaithkLogo = ({ className }: { className?: string }) => {
   return (
@@ -34,7 +34,7 @@ export default function Home() {
           </h1>
           <div className="h-5  border-l-[1px] opacity-50"></div>
           <span className="text-sm font-mono font-bold text-gray-500 truncate-text">
-            Tushar's Baithak
+            Tushar&apos;s Baithak
           </span>
         </div>
         <div className="flex items-center justify-end gap-2 flex-1">

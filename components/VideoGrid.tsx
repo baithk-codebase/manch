@@ -55,9 +55,7 @@ interface Participant {
 interface VideoGridProps {
   participants: Participant[];
   localParticipant: Participant;
-  pinnedParticipantId?: string;
   onPinParticipant?: (participantId: string) => void;
-  className?: string;
 }
 
 interface GridDimensions {
@@ -280,7 +278,7 @@ function useVideoGrid(
 
     for (let i = 0; i < count; i++) {
       let col = i % bestLayout.cols;
-      let row = Math.floor(i / bestLayout.cols);
+      const row = Math.floor(i / bestLayout.cols);
 
       // Special positioning for 3 participants on desktop (center the third one)
       if (count === 3 && i === 2 && !isMobile && !isMobileLandscape) {
@@ -460,9 +458,7 @@ const VideoTile = ({
 export const VideoGrid = ({
   participants,
   localParticipant,
-  pinnedParticipantId,
   onPinParticipant,
-  className,
 }: VideoGridProps) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState<GridDimensions>({
