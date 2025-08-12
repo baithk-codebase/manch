@@ -1,5 +1,6 @@
 "use client";
-function PreJoinPage({ children }: { children: React.ReactNode }) {
+
+function PreJoinLayout({ children }: { children: React.ReactNode }) {
   return (
     <main data-lk-theme="default" style={{ height: "100%" }}>
       {children}
@@ -7,4 +8,4 @@ function PreJoinPage({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default PreJoinPage;
+export default PreJoinLayout;
