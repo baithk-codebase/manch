@@ -30,7 +30,7 @@ function PreJoinLayout() {
   const [audioDeviceId, setAudioDeviceId] = useState<string>("");
   const [videoDeviceId, setVideoDeviceId] = useState<string>("");
   const [audioOutputDeviceId, setAudioOutputDeviceId] = useState<string>("");
-  const [username, setUsername] = useState("Tushar Banga");
+  const [username, setUsername] = useState("");
   const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
   const [audioOutputDevices, setAudioOutputDevices] = useState<
@@ -46,7 +46,7 @@ function PreJoinLayout() {
     setAudioDeviceId(initialUserChoices.audioDeviceId || "");
     setVideoDeviceId(initialUserChoices.videoDeviceId || "");
     setAudioOutputDeviceId(initialUserChoices.audioOutputDeviceId || "");
-    setUsername(initialUserChoices.username || "Tushar Banga");
+    setUsername(initialUserChoices.username || "");
   }, [initialUserChoices]);
 
   useEffect(() => {
