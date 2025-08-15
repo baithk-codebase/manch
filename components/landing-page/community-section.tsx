@@ -32,7 +32,7 @@ const testimonials = [
 
 export function CommunitySection() {
   return (
-    <section id="community" className="py-20 lg:py-32 to-accent/5">
+    <section id="community" className="pt-20 to-accent/5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">

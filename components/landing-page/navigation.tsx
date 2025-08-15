@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Mic } from "lucide-react";
+import Link from "next/link";
 
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -49,12 +50,12 @@ export function Navigation() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button
-              variant="ghost"
+            <Link
+              href="/dashboard"
               className="text-foreground hover:text-primary"
             >
               Sign In
-            </Button>
+            </Link>
             <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
               Get Started
             </Button>
@@ -106,12 +107,12 @@ export function Navigation() {
                 Contact
               </a>
               <div className="flex flex-col space-y-2 pt-4">
-                <Button
-                  variant="ghost"
+                <Link
+                  href="/dashboard"
                   className="text-foreground hover:text-primary justify-start"
                 >
                   Sign In
-                </Button>
+                </Link>
                 <Button className="bg-primary hover:bg-primary/90 text-primary-foreground justify-start">
                   Get Started
                 </Button>
