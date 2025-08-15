@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Play, Users, Headphones } from "lucide-react";
+import Image from "next/image";
 
 export function HeroSection() {
   return (
@@ -50,7 +51,7 @@ export function HeroSection() {
           {/* Hero Image Placeholder */}
           <div className="relative max-w-5xl mx-auto">
             <div className="bg-card border border-border rounded-2xl shadow-2xl overflow-hidden">
-              <img
+              <Image
                 src="/placeholder-ltzgd.png"
                 alt="Baithk Dashboard Preview"
                 className="w-full h-auto"
