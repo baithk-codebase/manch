@@ -10,7 +10,7 @@ const testimonials = [
     content:
       "Baithk transformed how we create our weekly tech show. The collaborative features make it so easy to work with remote guests.",
     rating: 5,
-    avatar: "/professional-woman-smiling.png",
+    avatar: "fox.jpg",
   },
   {
     name: "Mike Chen",
@@ -18,15 +18,15 @@ const testimonials = [
     content:
       "The analytics dashboard gives me insights I never had before. I can see exactly what content resonates with my audience.",
     rating: 5,
-    avatar: "/professional-man-smiling.png",
+    avatar: "lion.jpg",
   },
   {
-    name: "Emily Rodriguez",
+    name: "Carlos Rodriguez",
     role: "Educational Content Creator",
     content:
       "From recording to publishing, everything is seamless. Baithk has cut our production time in half while improving quality.",
     rating: 5,
-    avatar: "/professional-woman-headphones.png",
+    avatar: "rhino.jpg",
   },
 ];
 
@@ -75,9 +75,13 @@ export function CommunitySection() {
                 {/* Author */}
                 <div className="flex items-center">
                   <Image
-                    src={testimonial.avatar || "/placeholder.svg"}
+                    src={`/testimonials/${
+                      testimonial.avatar || "placeholder.png"
+                    }`}
                     alt={testimonial.name}
-                    className="w-12 h-12 rounded-full mr-4"
+                    className="rounded-full mr-4"
+                    width={48}
+                    height={48}
                   />
                   <div>
                     <h4 className="font-semibold text-card-foreground">

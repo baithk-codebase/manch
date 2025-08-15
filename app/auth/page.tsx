@@ -1,18 +1,14 @@
 "use client";
-import { SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
+import { RedirectToSignIn, useUser } from "@clerk/nextjs";
 
-export default function Navbar() {
-  const { isLoaded, isSignedIn, user } = useUser();
+export default function AuthPage() {
+  const { isLoaded, isSignedIn } = useUser();
 
-  if (!isLoaded || !isSignedIn) {
-    return <SignInButton fallbackRedirectUrl="/auth" />;
+  if (!isLoaded) {
+    return null;
   }
-  return (
-    <div>
-      <SignOutButton redirectUrl="/auth" />
-      <div>
-        Signed in as {user?.firstName}: {user.emailAddresses[0].emailAddress}
-      </div>
-    </div>
-  );
+
+  if (!isSignedIn) {
+    return <RedirectToSignIn redirectUrl={"/dashboard"} />;
+  }
 }

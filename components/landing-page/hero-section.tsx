@@ -52,9 +52,11 @@ export function HeroSection() {
           <div className="relative max-w-5xl mx-auto">
             <div className="bg-card border border-border rounded-2xl shadow-2xl overflow-hidden">
               <Image
-                src="/placeholder-ltzgd.png"
+                src="/podcast.jpg"
                 alt="Baithk Dashboard Preview"
-                className="w-full h-auto"
+                className="w-full"
+                height={500}
+                width={500}
               />
             </div>
             {/* Floating Elements */}
