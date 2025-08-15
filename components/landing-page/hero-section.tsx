@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Play, Users, Headphones } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export function HeroSection() {
   return (
@@ -31,21 +32,20 @@ export function HeroSection() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-            <Button
-              size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg font-semibold"
+            <Link
+              href="/dashboard"
+              className="flex items-center bg-primary hover:bg-primary/90 text-primary-foreground p-3 text-lg font-semibold rounded-2xl"
             >
               <Play className="w-5 h-5 mr-2" />
               Start Your Podcast
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="border-primary text-primary hover:bg-primary hover:text-primary-foreground px-8 py-4 text-lg font-semibold bg-transparent"
+            </Link>
+            <Link
+              href="/dashboard"
+              className="flex items-center rounded-2xl border-primary text-primary hover:bg-primary hover:text-primary-foreground p-3 text-lg font-semibold bg-transparent transition ease-in-out duration-100"
             >
               <Headphones className="w-5 h-5 mr-2" />
               Watch Demo
-            </Button>
+            </Link>
           </div>
 
           {/* Hero Image Placeholder */}

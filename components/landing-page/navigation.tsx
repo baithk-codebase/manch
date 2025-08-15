@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Mic } from "lucide-react";
+import { Menu, Mic, X } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -56,9 +56,12 @@ export function Navigation() {
             >
               Sign In
             </Link>
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Link
+              href="/dashboard"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-1 rounded-xl"
+            >
               Get Started
-            </Button>
+            </Link>
           </div>
 
           {/* Mobile menu button */}
