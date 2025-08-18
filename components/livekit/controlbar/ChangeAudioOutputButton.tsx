@@ -6,6 +6,8 @@ const SpeakerIconMemo = memo(({ className }: { className: string }) => {
   return <SpeakerIcon className={className} />;
 });
 
+SpeakerIconMemo.displayName = "SpeakerIconMemo";
+
 function ChangeAudioOutputButton() {
   const [isSpeakerModalOpen, setIsSpeakerModalOpen] = useState(false);
   return (

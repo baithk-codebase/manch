@@ -16,6 +16,8 @@ const Volume2Memo = memo(
   }
 );
 
+Volume2Memo.displayName = "Volume2Memo";
+
 const CheckMemo = memo(
   ({
     className,
@@ -27,6 +29,8 @@ const CheckMemo = memo(
     return <Check className={className} style={style} />;
   }
 );
+
+CheckMemo.displayName = "CheckMemo";
 
 function ChangeAudioOutput({
   isOpen,

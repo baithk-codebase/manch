@@ -57,6 +57,8 @@ const HandIconMemo = memo(({ className }: { className: string }) => {
   return <HandIcon className={className} />;
 });
 
+HandIconMemo.displayName = "HandIconMemo";
+
 function HandRaisedIcon() {
   const { ToggleHandRaised, isHandRaised, loading } = useToggleHandRaise();
 

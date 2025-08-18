@@ -1,11 +1,10 @@
 "use client";
 
+import Modal, { ModalBody } from "@/components/ui/Modal";
 import { useRoomContext } from "@livekit/components-react";
+import { AlertTriangle, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { LogOut, AlertTriangle, X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import Modal, { ModalBody } from "@/components/ui/Modal";
 
 function ExitButton() {
   const room = useRoomContext();

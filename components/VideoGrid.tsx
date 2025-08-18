@@ -2,31 +2,28 @@
 
 import { ParticipantAttribute } from "@/types/livekit/particpantAtrribute";
 import {
-  TrackReference,
   TrackReferenceOrPlaceholder,
   useEnsureTrackRef,
   useRoomContext,
   useTracks,
   useVisualStableUpdate,
-  VideoTrack,
+  VideoTrack
 } from "@livekit/components-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import {
   LocalParticipant,
-  Participant,
   RemoteParticipant,
   RoomEvent,
-  Track,
+  Track
 } from "livekit-client";
 import {
-  HandIcon,
   Mic,
   MicOff,
   MoreVertical,
   VideoOff,
-  Volume2,
+  Volume2
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState, useMemo } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatedHandIcon } from "./livekit/controlbar/HandRaisedIcon";
 
 // Custom debounce hook for audio levels
