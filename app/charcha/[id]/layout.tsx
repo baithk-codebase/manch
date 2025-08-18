@@ -1,7 +1,9 @@
 "use client";
 
+import { usePersistentUserChoices } from "@/hooks/devices/usePresistentUserChoices";
 import { LiveKitRoom } from "@livekit/components-react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { RoomOptions } from "livekit-client";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 
 export default function CharchaLayout({
@@ -9,29 +11,30 @@ export default function CharchaLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { id } = useParams();
   const searchParams = useSearchParams();
+  
+  const { userChoices } = usePersistentUserChoices();
 
   const accessToken = searchParams.get("accessToken");
   const sfuUrl = searchParams.get("sfuUrl");
 
   const [isConnected, setIsConnected] = useState(false);
-
-  console.log(accessToken, sfuUrl, id);
+  const [isDisconnected, setIsDisconnected] = useState(false);
+  const [isMediaDeviceFailure, setIsMediaDeviceFailure] = useState(false);
 
   const handleConnect = useCallback(() => {
     setIsConnected(true);
   }, []);
 
   const handleDisconnect = useCallback(() => {
-    console.log("disconnected");
+    setIsDisconnected(true);
   }, []);
 
   const handleMediaDeviceFailure = useCallback(() => {
-    console.log("media device failure");
+    setIsMediaDeviceFailure(true);
   }, []);
 
-  const RoomOptions = useMemo(() => {
+  const RoomOptions: RoomOptions = useMemo(() => {
     return {
       adaptiveStream: true,
     };
@@ -45,9 +48,8 @@ export default function CharchaLayout({
       onConnected={handleConnect}
       onDisconnected={handleDisconnect}
       onMediaDeviceFailure={handleMediaDeviceFailure}
-      audio={false}
-      video={false}
-      screen={false}
+      audio={userChoices.audioEnabled}
+      video={userChoices.videoEnabled}
       options={RoomOptions}
     >
       {children}

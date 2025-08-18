@@ -1,12 +1,16 @@
 "use client";
 
+import { ParticipantAttribute } from "@/types/livekit/particpantAtrribute";
 import {
   TrackReference,
   TrackReferenceOrPlaceholder,
   useEnsureTrackRef,
+  useRoomContext,
   useTracks,
+  useVisualStableUpdate,
   VideoTrack,
 } from "@livekit/components-react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LocalParticipant,
   Participant,
@@ -14,8 +18,36 @@ import {
   RoomEvent,
   Track,
 } from "livekit-client";
-import { Mic, MicOff, MoreVertical, VideoOff, Volume2 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  HandIcon,
+  Mic,
+  MicOff,
+  MoreVertical,
+  VideoOff,
+  Volume2,
+} from "lucide-react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
+import { AnimatedHandIcon } from "./livekit/controlbar/HandRaisedIcon";
+
+// Custom debounce hook for audio levels
+function useDebounceAudioLevel(
+  audioLevel: number | undefined,
+  delay: number = 150
+) {
+  const [debouncedValue, setDebouncedValue] = useState(audioLevel);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(audioLevel);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [audioLevel, delay]);
+
+  return debouncedValue;
+}
 
 // Utility functions
 function cn(...inputs: (string | undefined | null | boolean)[]): string {
@@ -312,6 +344,11 @@ const VideoTile = ({
   const trackReference = useEnsureTrackRef(track);
   const participant = trackReference.participant;
 
+  const debouncedAudioLevel = useDebounceAudioLevel(
+    participant.audioLevel,
+    100
+  );
+
   const avatarColor = generateAvatarColor(
     participant.name || participant.identity || ""
   );
@@ -363,6 +400,33 @@ const VideoTile = ({
     );
   };
 
+  const getAudioRing = (isHandRaised: boolean) => {
+    if (isHandRaised) {
+      return "ring-2 ring-yellow-400";
+    }
+
+    if (!participant.isSpeaking || debouncedAudioLevel === undefined) {
+      return "";
+    }
+
+    const audioLevel = debouncedAudioLevel;
+
+    if (audioLevel >= 0.75) {
+      return "ring-8 ring-green-400";
+    } else if (audioLevel >= 0.5) {
+      return "ring-6 ring-green-400";
+    } else if (audioLevel >= 0.25) {
+      return "ring-4 ring-green-500";
+    } else if (audioLevel > 0) {
+      return "ring-2 ring-green-600";
+    }
+
+    return "";
+  };
+
+  const isHandRaised =
+    participant.attributes[ParticipantAttribute.IS_HAND_RAISED];
+
   return (
     <div
       style={{
@@ -374,8 +438,8 @@ const VideoTile = ({
         ...style,
       }}
       className={cn(
-        "relative rounded-lg overflow-hidden bg-gray-900 border transition-all duration-1000 border-gray-700",
-        participant.isSpeaking && "ring-2 ring-green-500"
+        "relative rounded-lg overflow-hidden bg-gray-900 border transition-all duration-300 ease-out border-gray-700",
+        getAudioRing(!!isHandRaised)
       )}
     >
       <div className="absolute top-3 left-3 z-10">
@@ -386,7 +450,7 @@ const VideoTile = ({
         {hasVideo ? (
           <VideoTrack
             trackRef={trackReference}
-            className="w-full h-full object-cover"
+            className="w-full !object-contain"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-800">
@@ -410,7 +474,12 @@ const VideoTile = ({
 
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none">
         <div className="absolute inset-0 pointer-events-auto">
-          <div className="absolute top-2 right-2">
+          <div className="absolute top-2 right-2 flex items-center gap-2">
+            <AnimatePresence>
+              {isHandRaised && (
+                <AnimatedHandIcon className="w-6 h-6 text-white bg-yellow-600 rounded-full p-1 shadow-md flex items-center justify-center" loop={Infinity} />
+              )}
+            </AnimatePresence>
             <button className="p-1 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors">
               <MoreVertical className="w-3 h-3" />
             </button>
@@ -418,7 +487,7 @@ const VideoTile = ({
 
           <div className="absolute bottom-2 left-2 right-2">
             <div className="flex items-center justify-between">
-              <div className="text-white text-sm font-medium truncate flex-1 mr-2">
+              <div className="text-white text-sm font-medium truncate flex items-center gap-2 flex-1 mr-2">
                 {participant.name || participant.identity}
                 {isLocalUser && " (You)"}
               </div>
@@ -457,8 +526,21 @@ export const VideoGrid = () => {
       { source: Track.Source.ScreenShare, withPlaceholder: false },
       { source: Track.Source.Unknown, withPlaceholder: false },
     ],
-    { updateOnlyOn: [RoomEvent.ActiveSpeakersChanged] }
+    {
+      updateOnlyOn: [
+        RoomEvent.ParticipantActive,
+        RoomEvent.ParticipantDisconnected,
+        RoomEvent.ActiveSpeakersChanged,
+        RoomEvent.TrackMuted,
+        RoomEvent.TrackUnmuted,
+        RoomEvent.ParticipantAttributesChanged,
+      ],
+    }
   );
+
+  const tracksStable = useVisualStableUpdate(tracks, 4);
+
+  const room = useRoomContext();
 
   const gridRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState<GridDimensions>({
@@ -477,13 +559,13 @@ export const VideoGrid = () => {
     updateDimensions();
     window.addEventListener("resize", updateDimensions);
     return () => window.removeEventListener("resize", updateDimensions);
-  }, []);
+  }, [room.state]);
 
   const { positions } = useVideoGrid(dimensions, tracks.length, 16);
 
   return (
     <div ref={gridRef} className={"relative w-full h-full overflow-hidden"}>
-      {tracks.map((track, index) => (
+      {tracksStable.map((track, index) => (
         <VideoTile
           key={track.publication?.trackSid ?? index}
           track={track}
