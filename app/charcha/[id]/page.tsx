@@ -1,15 +1,25 @@
+"use client";
+
+import ConnectionStateIndicator from "@/components/livekit/Indicators/ConnectionState";
+import ConnectionStatusBadge from "@/components/livekit/Indicators/ConnectionStatusBadge";
 import { VideoGrid } from "@/components/VideoGrid";
+import {
+  RoomAudioRenderer,
+  useLocalParticipant
+} from "@livekit/components-react";
 import {
   ChevronLeft,
   Ellipsis,
   HandIcon,
   LogOut,
   Mic,
+  MicOff,
   ScreenShareIcon,
   Settings,
   Share,
   SpeakerIcon,
   VideoIcon,
+  VideoOff,
 } from "lucide-react";
 
 const BaithkLogo = ({ className }: { className?: string }) => {
@@ -32,6 +42,7 @@ const BaithkLogo = ({ className }: { className?: string }) => {
 };
 
 export default function Home() {
+  const localParticipant = useLocalParticipant();
   return (
     <div className="h-[100dvh] overflow-hidden flex flex-col md:pt-[16px] md:px-[16px] md:pb-[8px] p-2">
       <div className="grid grid-cols-[1fr_1fr]">
@@ -47,6 +58,8 @@ export default function Home() {
           <span className="text-sm font-mono font-bold text-gray-500 truncate-text">
             Tushar&apos;s Baithak
           </span>
+          <div className="h-5 border-l-[1px] opacity-50 hidden md:block"></div>
+          <ConnectionStatusBadge />
         </div>
         <div className="flex items-center justify-end gap-2 flex-1">
           <button className="semi-primary h-full aspect-square md:block hidden">
@@ -61,44 +74,33 @@ export default function Home() {
           </button>
         </div>
       </div>
-      <VideoGrid
-        participants={[
-          {
-            id: "1",
-            name: "John Doe",
-            isHost: false,
-            isMuted: false,
-            isVideoOff: true,
-          },
-          {
-            id: "2",
-            name: "Anshul Verma",
-            isHost: false,
-            isMuted: false,
-            isVideoOff: true,
-          },
-          {
-            id: "3",
-            name: "tushar",
-            isHost: false,
-            isMuted: false,
-            isVideoOff: true,
-          },
-        ]}
-        localParticipant={{
-          id: "local",
-          name: "You",
-          isHost: false,
-          isMuted: false,
-          isVideoOff: true,
-        }}
-      />
+      <VideoGrid />
       <div className="flex items-center justify-center gap-2 my-4">
-        <button className="semi-primary">
-          <Mic className="aspect-square h-full p-0.5" />
+        <button
+          onClick={() => localParticipant.localParticipant.setMicrophoneEnabled(!localParticipant.localParticipant.isMicrophoneEnabled)}
+          className="semi-primary"
+        >
+          {localParticipant.localParticipant.isMicrophoneEnabled ? (
+            <Mic className="aspect-square h-full p-0.5" />
+          ) : (
+            <MicOff className="aspect-square h-full p-0.5" />
+          )}
         </button>
-        <button className="semi-primary">
-          <VideoIcon className="aspect-square h-full p-0.5" />
+        <button
+          onClick={() =>
+            localParticipant.localParticipant.setCameraEnabled(
+              !localParticipant.localParticipant.isCameraEnabled
+            )
+          }
+          className="semi-primary"
+        >
+          {
+            localParticipant.localParticipant.isCameraEnabled ? (
+              <VideoIcon className="aspect-square h-full p-0.5" />
+            ) : (
+              <VideoOff className="aspect-square h-full p-0.5" />
+            )
+          }
         </button>
         <button className="semi-primary">
           <ScreenShareIcon className="aspect-square h-full p-0.5" />
@@ -113,6 +115,8 @@ export default function Home() {
           <LogOut className="aspect-square h-full p-0.5" />
         </button>
       </div>
+      <ConnectionStateIndicator />
+      <RoomAudioRenderer />
     </div>
   );
 }

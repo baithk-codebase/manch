@@ -1,16 +1,21 @@
 "use client";
 
 import {
-    Mic,
-    MicOff,
-    MoreVertical,
-    VideoOff,
-    Volume2,
-} from "lucide-react";
+  TrackReference,
+  TrackReferenceOrPlaceholder,
+  useEnsureTrackRef,
+  useTracks,
+  VideoTrack,
+} from "@livekit/components-react";
+import {
+  LocalParticipant,
+  Participant,
+  RemoteParticipant,
+  RoomEvent,
+  Track,
+} from "livekit-client";
+import { Mic, MicOff, MoreVertical, VideoOff, Volume2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-
-// Optional: Import LiveKit components for enhanced video handling
-// import { VideoTrack, AudioTrack, ParticipantTile } from "@livekit/components-react";
 
 // Utility functions
 function cn(...inputs: (string | undefined | null | boolean)[]): string {
@@ -42,20 +47,9 @@ function generateAvatarColor(name: string): string {
   return colors[index];
 }
 
-interface Participant {
-  id: string;
-  name: string;
-  isHost?: boolean;
-  isMuted?: boolean;
-  isVideoOff?: boolean;
-  isSpeaking?: boolean;
-  isHandRaised?: boolean;
-  connectionQuality?: "excellent" | "good" | "poor";
-}
-
 interface VideoGridProps {
-  participants: Participant[];
-  localParticipant: Participant;
+  participants: RemoteParticipant[];
+  localParticipant: LocalParticipant;
 }
 
 interface GridDimensions {
@@ -104,14 +98,14 @@ function useVideoGrid(
       let itemWidth = itemHeight * aspectRatio;
       const maxTotalWidth = containerWidth;
       const minWidthNeeded = count * itemWidth + (count - 1) * gap;
-      
+
       // If content doesn't fit, scale down the width
       if (minWidthNeeded > maxTotalWidth) {
         itemWidth = (maxTotalWidth - (count - 1) * gap) / count;
       }
-      
+
       const totalWidth = count * itemWidth + (count - 1) * gap;
-      
+
       bestLayout = {
         cols: count,
         rows: 1,
@@ -127,14 +121,14 @@ function useVideoGrid(
       let itemHeight = itemWidth / aspectRatio;
       const maxTotalHeight = containerHeight;
       const minHeightNeeded = count * itemHeight + (count - 1) * gap;
-      
+
       // If content doesn't fit, scale down the height
       if (minHeightNeeded > maxTotalHeight) {
         itemHeight = (maxTotalHeight - (count - 1) * gap) / count;
       }
-      
+
       const totalHeight = count * itemHeight + (count - 1) * gap;
-      
+
       bestLayout = {
         cols: 1,
         rows: count,
@@ -159,15 +153,15 @@ function useVideoGrid(
     } else if (count === 2) {
       let itemWidth = (containerWidth - gap) / 2;
       let itemHeight = itemWidth / aspectRatio;
-      
+
       // If height doesn't fit, scale based on available height
       if (itemHeight > containerHeight) {
         itemHeight = containerHeight;
         itemWidth = itemHeight * aspectRatio;
       }
-      
+
       const totalWidth = 2 * itemWidth + gap;
-      
+
       bestLayout = {
         cols: 2,
         rows: 1,
@@ -182,16 +176,16 @@ function useVideoGrid(
       let itemWidth = (containerWidth - gap) / 2;
       let itemHeight = itemWidth / aspectRatio;
       let totalHeight = 2 * itemHeight + gap;
-      
+
       // If doesn't fit, scale down
       if (totalHeight > containerHeight) {
         itemHeight = (containerHeight - gap) / 2;
         itemWidth = itemHeight * aspectRatio;
         totalHeight = 2 * itemHeight + gap;
       }
-      
+
       const totalWidth = 2 * itemWidth + gap;
-      
+
       bestLayout = {
         cols: 2,
         rows: 2,
@@ -206,16 +200,16 @@ function useVideoGrid(
       let itemWidth = (containerWidth - gap) / 2;
       let itemHeight = itemWidth / aspectRatio;
       let totalHeight = 2 * itemHeight + gap;
-      
+
       // If doesn't fit, scale down
       if (totalHeight > containerHeight) {
         itemHeight = (containerHeight - gap) / 2;
         itemWidth = itemHeight * aspectRatio;
         totalHeight = 2 * itemHeight + gap;
       }
-      
+
       const totalWidth = 2 * itemWidth + gap;
-      
+
       bestLayout = {
         cols: 2,
         rows: 2,
@@ -305,32 +299,66 @@ function useVideoGrid(
 
 // Video tile component
 const VideoTile = ({
-  participant,
+  track,
   position,
   isLocalUser = false,
   style,
 }: {
-  participant: Participant;
+  track: TrackReferenceOrPlaceholder;
   position: GridPosition;
   isLocalUser?: boolean;
   style?: React.CSSProperties;
 }) => {
-  const avatarColor = generateAvatarColor(participant.name);
-  const initials = getInitials(participant.name);
+  const trackReference = useEnsureTrackRef(track);
+  const participant = trackReference.participant;
+
+  const avatarColor = generateAvatarColor(
+    participant.name || participant.identity || ""
+  );
+  const initials = getInitials(
+    participant.name || participant.identity || "Unknown"
+  );
+
+  const hasVideo =
+    trackReference.publication &&
+    trackReference.publication.kind === "video" &&
+    trackReference.publication.isSubscribed &&
+    !trackReference.publication.isMuted;
+
+  const audioPublication = participant.getTrackPublication(
+    Track.Source.Microphone
+  );
+  const isAudioMuted = !audioPublication || audioPublication.isMuted;
 
   const getConnectionIndicator = () => {
-    const quality = participant.connectionQuality || "poor";
-    const heights = ["4px", "8px", "12px"];
-    
+    const quality = participant.connectionQuality || "unknown";
+
+    const getQualityColor = () => {
+      switch (quality) {
+        case "excellent":
+          return { color: "bg-green-500", height: 4 };
+        case "good":
+          return { color: "bg-yellow-500", height: 3 };
+        case "poor":
+          return { color: "bg-red-500", height: 2 };
+        default:
+          return { color: "bg-gray-500", height: 1 };
+      }
+    };
+
+    const { color, height } = getQualityColor();
+
     return (
-      <div className="video-tile-connection">
-        {heights.map((height, i) => (
-          <div
-            key={i}
-            className={`connection-bar ${quality}`}
-            style={{ height }}
-          />
-        ))}
+      <div className="flex items-end gap-0.5">
+        {Array.from({ length: height }).map((_, i) => {
+          return (
+            <div
+              key={i}
+              className={`w-1 rounded-sm ${color}`}
+              style={{ height: (i + 1) * 4 + "px" }}
+            />
+          );
+        })}
       </div>
     );
   };
@@ -346,66 +374,74 @@ const VideoTile = ({
         ...style,
       }}
       className={cn(
-        "video-tile",
-        participant.isSpeaking && "speaking"
+        "relative rounded-lg overflow-hidden bg-gray-900 border transition-all duration-1000 border-gray-700",
+        participant.isSpeaking && "ring-2 ring-green-500"
       )}
     >
       <div className="absolute top-3 left-3 z-10">
         {getConnectionIndicator()}
       </div>
-      <div className="w-full h-full flex items-center justify-center relative">
-        {participant.isVideoOff ? (
-          <div className="flex flex-col items-center justify-center space-y-2">
-            <div
-              className={cn(
-                "video-tile-avatar",
-                position.width > 200
-                  ? "w-16 h-16 text-xl"
-                  : "w-12 h-12 text-sm",
-                avatarColor
-              )}
-            >
-              {initials}
-            </div>
-            <VideoOff className="w-4 h-4 text-muted" />
-          </div>
+
+      <div className="w-full h-full relative">
+        {hasVideo ? (
+          <VideoTrack
+            trackRef={trackReference}
+            className="w-full h-full object-cover"
+          />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="text-4xl">📹</div>
-            {participant.isSpeaking && (
-              <div className="absolute inset-0 animate-pulse" style={{ backgroundColor: "var(--success)20" }} />
-            )}
+          <div className="w-full h-full flex items-center justify-center bg-gray-800">
+            <div className="flex flex-col items-center space-y-2">
+              <div
+                className={cn(
+                  "rounded-full flex items-center justify-center text-white font-semibold",
+                  position.width > 200
+                    ? "w-16 h-16 text-xl"
+                    : "w-12 h-12 text-sm",
+                  avatarColor
+                )}
+              >
+                {initials}
+              </div>
+              <VideoOff className="w-4 h-4 text-gray-400" />
+            </div>
           </div>
         )}
       </div>
-      <div className="video-tile-overlay">
-        <div className="absolute top-2 right-2 flex space-x-1">
-          <button className="video-tile-button">
-            <MoreVertical className="w-3 h-3" />
-          </button>
-        </div>
-        <div className="absolute bottom-2 left-2 right-2">
-          <div className="flex items-center justify-between">
-            <div className="video-tile-name truncate-text">
-              {participant.name}
-              {participant.isHost && " (Host)"}
-              {isLocalUser && " (You)"}
-            </div>
 
-            <div className="flex items-center space-x-1">
-              <div className={cn("video-tile-mic", participant.isMuted ? "muted" : "unmuted")}>
-                {participant.isMuted ? (
-                  <MicOff className="w-2.5 h-2.5 text-white" />
-                ) : (
-                  <Mic className="w-2.5 h-2.5 text-white" />
-                )}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none">
+        <div className="absolute inset-0 pointer-events-auto">
+          <div className="absolute top-2 right-2">
+            <button className="p-1 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors">
+              <MoreVertical className="w-3 h-3" />
+            </button>
+          </div>
+
+          <div className="absolute bottom-2 left-2 right-2">
+            <div className="flex items-center justify-between">
+              <div className="text-white text-sm font-medium truncate flex-1 mr-2">
+                {participant.name || participant.identity}
+                {isLocalUser && " (You)"}
               </div>
 
-              {!isLocalUser && (
-                <button className="video-tile-button p-1">
-                  <Volume2 className="w-2.5 h-2.5" />
-                </button>
-              )}
+              <div className="flex items-center space-x-1 flex-shrink-0">
+                <div
+                  className={cn(
+                    "p-1 rounded-full flex items-center justify-center",
+                    isAudioMuted ? "bg-red-500/80" : "bg-green-500/80"
+                  )}
+                >
+                  {isAudioMuted ? (
+                    <MicOff className="w-2.5 h-2.5 text-white" />
+                  ) : (
+                    <Mic className="w-2.5 h-2.5 text-white" />
+                  )}
+                </div>
+                {!isLocalUser && (
+                  <button className="p-1 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors">
+                    <Volume2 className="w-2.5 h-2.5" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -414,10 +450,16 @@ const VideoTile = ({
   );
 };
 
-export const VideoGrid = ({
-  participants,
-  localParticipant,
-}: VideoGridProps) => {
+export const VideoGrid = () => {
+  const tracks = useTracks(
+    [
+      { source: Track.Source.Camera, withPlaceholder: true },
+      { source: Track.Source.ScreenShare, withPlaceholder: false },
+      { source: Track.Source.Unknown, withPlaceholder: false },
+    ],
+    { updateOnlyOn: [RoomEvent.ActiveSpeakersChanged] }
+  );
+
   const gridRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState<GridDimensions>({
     width: 0,
@@ -437,20 +479,18 @@ export const VideoGrid = ({
     return () => window.removeEventListener("resize", updateDimensions);
   }, []);
 
-  const allParticipants = [localParticipant, ...participants];
-
-  const { positions } = useVideoGrid(dimensions, allParticipants.length, 16);
+  const { positions } = useVideoGrid(dimensions, tracks.length, 16);
 
   return (
     <div ref={gridRef} className={"relative w-full h-full overflow-hidden"}>
-      {allParticipants.map((participant, index) => (
+      {tracks.map((track, index) => (
         <VideoTile
-          key={participant.id}
-          participant={participant}
+          key={track.publication?.trackSid ?? index}
+          track={track}
           position={
             positions[index] || { left: 0, top: 0, width: 200, height: 112 }
           }
-          isLocalUser={participant.id === localParticipant.id}
+          isLocalUser={track.publication?.isLocal}
           style={{
             animationDelay: `${index * 100}ms`,
           }}

@@ -2,6 +2,7 @@
 
 import { usePersistentUserChoices } from "@/hooks/devices/usePresistentUserChoices";
 import { usePreviewTracks } from "@livekit/components-react";
+import axios from "axios";
 import { LocalVideoTrack, Track } from "livekit-client";
 import {
   AlertTriangle,
@@ -12,6 +13,7 @@ import {
   VideoOff,
   X,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 function PreJoinLayout() {
@@ -24,6 +26,8 @@ function PreJoinLayout() {
     saveAudioOutputDeviceId,
     saveUsername,
   } = usePersistentUserChoices({});
+
+  const router = useRouter();
 
   const [audioEnabled, setAudioEnabled] = useState<boolean>(true);
   const [videoEnabled, setVideoEnabled] = useState<boolean>(true);
@@ -74,8 +78,6 @@ function PreJoinLayout() {
     saveUsername(username);
   }, [username, saveUsername, isClient]);
 
-
-
   const handleError = useCallback((error: Error) => {
     console.error("Error creating tracks:", error);
     setShowPermissionModal(true);
@@ -113,7 +115,7 @@ function PreJoinLayout() {
       }
     };
     getDevices();
-  }, [isClient, videoEnabled, audioEnabled,tracks]);
+  }, [isClient, videoEnabled, audioEnabled, tracks]);
 
   const videoEl = useRef<HTMLVideoElement>(null);
 
@@ -137,9 +139,24 @@ function PreJoinLayout() {
     };
   }, [videoTrack, isClient]);
 
-  const handleJoinStudio = () => {
-    if (typeof window !== "undefined") {
-      window.location.href = "/";
+  const handleJoinStudio = async () => {
+    try {
+      const roomId = "test-room";
+      const userId = username || "test-user";
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/participant/generate-access-token`,
+        {
+          roomId,
+          userId,
+        }
+      );
+
+      const accessToken = response.data.accessToken;
+      const livekitUrl = response.data.livekitUrl;
+
+      await router.push(`/charcha/${roomId}?accessToken=${accessToken}&sfuUrl=${livekitUrl}`);
+    } catch (error) {
+      console.error(error);
     }
   };
 
