@@ -1,5 +1,8 @@
+import SettingsModal from "@/components/livekit/header/settings/Settings";
 import ConnectionStatusBadge from "@/components/livekit/Indicators/ConnectionStatusBadge";
+import MobileDropdown from "@/components/livekit/header/MobileDropdown";
 import { ChevronLeft, Ellipsis, Settings, Share } from "lucide-react";
+import { useState } from "react";
 
 const BaithkLogo = ({ className }: { className?: string }) => {
     return (
@@ -21,8 +24,18 @@ const BaithkLogo = ({ className }: { className?: string }) => {
   };
 
 function Header() {
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false);
+
+  const handleShareInvite = () => {
+    // Dummy function for share/invite
+    alert("Share & Invite functionality coming soon!");
+  };
+
   return (
     <div className="grid grid-cols-[1fr_1fr]">
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      
       <div className="flex items-center gap-3 justify-start">
         <button className="p-2 aspect-square">
           <ChevronLeft className="aspect-square h-full p-0.5" />
@@ -36,17 +49,37 @@ function Header() {
         <div className="h-5 border-l-[1px] opacity-50 hidden md:block"></div>
         <ConnectionStatusBadge />
       </div>
-      <div className="flex items-center justify-end gap-2 flex-1">
-        <button className="semi-primary h-full aspect-square md:block hidden">
+      
+      <div className="flex items-center justify-end gap-2 flex-1 relative">
+        <button 
+          onClick={() => setIsSettingsOpen(true)} 
+          className="semi-primary h-10 !aspect-square md:block hidden"
+        >
           <Settings className="aspect-square h-full p-0.5" />
         </button>
-        <button className="semi-primary items-center gap-2 md:flex hidden">
+        <button 
+          onClick={handleShareInvite}
+          className="semi-primary items-center gap-2 md:flex hidden"
+        >
           <Share className="aspect-square h-full p-0.5" />
           Invite
         </button>
-        <button className="semi-primary flex items-center gap-2 md:hidden">
-          <Ellipsis className="aspect-square h-full p-0.5" />
-        </button>
+        
+        <div className="relative md:hidden">
+          <button 
+            onClick={() => setIsMobileDropdownOpen(!isMobileDropdownOpen)}
+            className="semi-primary flex items-center gap-2"
+          >
+            <Ellipsis className="aspect-square h-full p-0.5" />
+          </button>
+          
+          <MobileDropdown
+            isOpen={isMobileDropdownOpen}
+            onClose={() => setIsMobileDropdownOpen(false)}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            onShareInvite={handleShareInvite}
+          />
+        </div>
       </div>
     </div>
   );

@@ -10,7 +10,7 @@ export interface ModalProps {
   children: React.ReactNode;
   title?: string;
   icon?: React.ReactNode;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "sm" | "md" | "lg" | "xl" | "2xl";
   showCloseButton?: boolean;
   closeOnBackdropClick?: boolean;
   className?: string;
@@ -21,7 +21,8 @@ const sizeClasses = {
   sm: "max-w-sm",
   md: "max-w-md", 
   lg: "max-w-lg",
-  xl: "max-w-xl"
+  xl: "max-w-xl",
+  "2xl": "max-w-2xl"
 };
 
 export function Modal({

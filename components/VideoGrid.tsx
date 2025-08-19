@@ -7,22 +7,16 @@ import {
   useRoomContext,
   useTracks,
   useVisualStableUpdate,
-  VideoTrack
+  VideoTrack,
 } from "@livekit/components-react";
 import { AnimatePresence } from "framer-motion";
 import {
   LocalParticipant,
   RemoteParticipant,
   RoomEvent,
-  Track
+  Track,
 } from "livekit-client";
-import {
-  Mic,
-  MicOff,
-  MoreVertical,
-  VideoOff,
-  Volume2
-} from "lucide-react";
+import { Mic, MicOff, MoreVertical, VideoOff, Volume2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatedHandIcon } from "./livekit/controlbar/HandRaisedIcon";
 
@@ -450,7 +444,12 @@ const VideoTile = ({
             className="w-full !object-contain"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-800">
+          <div
+            className="w-full h-full flex items-center justify-center"
+            style={{
+              backgroundColor: "var(--card)",
+            }}
+          >
             <div className="flex flex-col items-center space-y-2">
               <div
                 className={cn(
@@ -474,7 +473,10 @@ const VideoTile = ({
           <div className="absolute top-2 right-2 flex items-center gap-2">
             <AnimatePresence>
               {isHandRaised && (
-                <AnimatedHandIcon className="w-6 h-6 text-white bg-yellow-600 rounded-full p-1 shadow-md flex items-center justify-center" loop={Infinity} />
+                <AnimatedHandIcon
+                  className="w-6 h-6 text-white bg-yellow-600 rounded-full p-1 shadow-md flex items-center justify-center"
+                  loop={Infinity}
+                />
               )}
             </AnimatePresence>
             <button className="p-1 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors">

@@ -1,6 +1,7 @@
 "use client";
 
 import { usePersistentUserChoices } from "@/hooks/devices/usePresistentUserChoices";
+import { useTheme } from "@/hooks/useTheme";
 import { LiveKitRoom } from "@livekit/components-react";
 import { RoomOptions } from "livekit-client";
 import { useSearchParams } from "next/navigation";
@@ -12,6 +13,7 @@ export default function CharchaLayout({
   children: React.ReactNode;
 }) {
   const searchParams = useSearchParams();
+  useTheme();
   
   const { userChoices } = usePersistentUserChoices();
 
