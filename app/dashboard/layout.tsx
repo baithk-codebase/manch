@@ -1,5 +1,7 @@
 "use client";
-import { SignOutButton, useUser } from "@clerk/nextjs";
+import { DashboardSideBar } from "@/components/dashboard/DashboardSideBar";
+import { DashboardStateProvider } from "@/hooks/dashboard/useDashboardState";
+import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -22,9 +24,11 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      {children}
-      <SignOutButton redirectUrl="/" />
-    </div>
+    <DashboardStateProvider>
+      <div className="flex h-screen">
+        <DashboardSideBar />
+        <main className="flex-1 p-4">{children}</main>
+      </div>
+    </DashboardStateProvider>
   );
 }

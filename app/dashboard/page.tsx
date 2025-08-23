@@ -1,8 +1,16 @@
 "use client";
+import { Pages, useDashboardState } from "@/hooks/dashboard/useDashboardState";
 import { useUser } from "@clerk/nextjs";
+import { useEffect } from "react";
 
 export default function DashboardPage() {
   const { user } = useUser();
+
+  const { setActivePage } = useDashboardState();
+  useEffect(() => {
+    // If someone directly access dashboard page
+    setActivePage(Pages.Podcasts);
+  }, []);
 
   return (
     <div className="h-auto bg-background flex flex-col items-center justify-center">
